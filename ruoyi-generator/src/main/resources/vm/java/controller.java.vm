@@ -1,32 +1,38 @@
-package ${packageName}.controller;
+package ${packageName}.${moduleName}.controller;
 
 import java.util.List;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.*;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
+import ${packageName}.domain.${ClassName};
+import ${packageName}.vo.${ClassName}Vo;
+import ${packageName}.service.I${ClassName}Service;
+
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
-import com.ruoyi.common.enums.BusinessType;
-import ${packageName}.domain.${ClassName};
-import ${packageName}.service.I${ClassName}Service;
-import com.ruoyi.common.utils.poi.ExcelUtil;
-#if($table.crud || $table.sub)
+import com.ruoyi.common.core.page.PageDomain;
 import com.ruoyi.common.core.page.TableDataInfo;
-#elseif($table.tree)
-#end
+import com.ruoyi.common.core.page.TableSupport;
+import com.ruoyi.common.enums.BusinessType;
+import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.poi.ExcelUtil;
 
 /**
- * ${functionName}Controller
- * 
+ * ${functionName}Controller（MyBatis-Plus，入参/出参：VO，持久化：Entity）
+ *
  * @author ${author}
  * @date ${datetime}
  */
@@ -37,69 +43,143 @@ public class ${ClassName}Controller extends BaseController
     @Autowired
     private I${ClassName}Service ${className}Service;
 
+    private ${ClassName}Vo toVo(${ClassName} entity)
+    {
+        if (entity == null) return null;
+            ${ClassName}Vo vo = new ${ClassName}Vo();
+        BeanUtils.copyProperties(entity, vo);
+        return vo;
+    }
+
+    private ${ClassName} toEntity(${ClassName}Vo vo)
+    {
+        if (vo == null) return null;
+        ${ClassName} entity = new ${ClassName}();
+        BeanUtils.copyProperties(vo, entity);
+        return entity;
+    }
+
+    private LambdaQueryWrapper<${ClassName}> buildWrapper(${ClassName}Vo ${className}Vo)
+    {
+        LambdaQueryWrapper<${ClassName}> wrapper = Wrappers.lambdaQuery();
+
+        #foreach($column in $columns)
+            #if($column.isQuery == "1")
+                #if($column.javaType == "String")
+                    #set($hasValue = "StringUtils.isNotBlank(${className}Vo.get${column.capJavaField}())")
+                #else
+                    #set($hasValue = "${className}Vo.get${column.capJavaField}() != null")
+                #end
+
+                #if($column.queryType == "LIKE")
+                    wrapper.like($hasValue, ${ClassName}::get${column.capJavaField}, ${className}Vo.get${column.capJavaField}());
+                #elseif($column.queryType == "EQ")
+                    wrapper.eq($hasValue, ${ClassName}::get${column.capJavaField}, ${className}Vo.get${column.capJavaField}());
+                #elseif($column.queryType == "NE")
+                    wrapper.ne($hasValue, ${ClassName}::get${column.capJavaField}, ${className}Vo.get${column.capJavaField}());
+                #elseif($column.queryType == "GT")
+                    wrapper.gt($hasValue, ${ClassName}::get${column.capJavaField}, ${className}Vo.get${column.capJavaField}());
+                #elseif($column.queryType == "GTE")
+                    wrapper.ge($hasValue, ${ClassName}::get${column.capJavaField}, ${className}Vo.get${column.capJavaField}());
+                #elseif($column.queryType == "LT")
+                    wrapper.lt($hasValue, ${ClassName}::get${column.capJavaField}, ${className}Vo.get${column.capJavaField}());
+                #elseif($column.queryType == "LTE")
+                    wrapper.le($hasValue, ${ClassName}::get${column.capJavaField}, ${className}Vo.get${column.capJavaField}());
+                #elseif($column.queryType == "BETWEEN")
+                    // BETWEEN：依赖 BaseEntity 的 params（VO 必须继承 BaseEntity）
+                    wrapper.between(
+                                ${className}Vo != null
+                                    && ${className}Vo.getParams() != null
+                                    && StringUtils.isNotBlank(${className}Vo.getParams().get("begin${column.capJavaField}") + "")
+                                    && StringUtils.isNotBlank(${className}Vo.getParams().get("end${column.capJavaField}") + ""),
+                        ${ClassName}::get${column.capJavaField},
+                                ${className}Vo.getParams().get("begin${column.capJavaField}"),
+                                ${className}Vo.getParams().get("end${column.capJavaField}")
+        );
+                #end
+            #end
+        #end
+
+        return wrapper;
+    }
+
     /**
-     * 查询${functionName}列表
+     * 查询${functionName}列表（MP 分页 + 返回 VO）
      */
     @PreAuthorize("@ss.hasPermi('${permissionPrefix}:list')")
     @GetMapping("/list")
-#if($table.crud || $table.sub)
-    public TableDataInfo list(${ClassName} ${className})
+    public TableDataInfo list(${ClassName}Vo ${className}Vo)
     {
-        startPage();
-        List<${ClassName}> list = ${className}Service.select${ClassName}List(${className});
-        return getDataTable(list);
+        // 读取若依分页参数 pageNum/pageSize
+        PageDomain pageDomain = TableSupport.buildPageRequest();
+        long pageNum = (pageDomain != null && pageDomain.getPageNum() != null) ? pageDomain.getPageNum() : 1L;
+        long pageSize = (pageDomain != null && pageDomain.getPageSize() != null) ? pageDomain.getPageSize() : 10L;
+
+        Page<${ClassName}> page = new Page<>(pageNum, pageSize);
+        IPage<${ClassName}> pageResult = ${className}Service.page(page, buildWrapper(${className}Vo));
+
+        List<${ClassName}Vo> voList = pageResult.getRecords()
+                .stream()
+                .map(this::toVo)
+                .collect(Collectors.toList());
+
+        TableDataInfo rspData = new TableDataInfo();
+        rspData.setCode(0);
+        rspData.setMsg("查询成功");
+        rspData.setRows(voList);
+        rspData.setTotal(pageResult.getTotal());
+        return rspData;
     }
-#elseif($table.tree)
-    public AjaxResult list(${ClassName} ${className})
-    {
-        List<${ClassName}> list = ${className}Service.select${ClassName}List(${className});
-        return success(list);
-    }
-#end
 
     /**
      * 导出${functionName}列表
+     * 说明：导出通常依赖实体类上的 @Excel 注解，所以这里仍导出实体
      */
     @PreAuthorize("@ss.hasPermi('${permissionPrefix}:export')")
     @Log(title = "${functionName}", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
-    public void export(HttpServletResponse response, ${ClassName} ${className})
+    public void export(HttpServletResponse response, ${ClassName}Vo ${className}Vo)
     {
-        List<${ClassName}> list = ${className}Service.select${ClassName}List(${className});
+        List<${ClassName}> list = ${className}Service.list(buildWrapper(${className}Vo));
         ExcelUtil<${ClassName}> util = new ExcelUtil<${ClassName}>(${ClassName}.class);
         util.exportExcel(response, list, "${functionName}数据");
     }
 
     /**
-     * 获取${functionName}详细信息
+     * 获取${functionName}详细信息（返回 VO）
      */
     @PreAuthorize("@ss.hasPermi('${permissionPrefix}:query')")
-    @GetMapping(value = "/{${pkColumn.javaField}}")
-    public AjaxResult getInfo(@PathVariable("${pkColumn.javaField}") ${pkColumn.javaType} ${pkColumn.javaField})
+    @GetMapping(value = "/{id}")
+    public AjaxResult getInfo(@PathVariable("id") ${pkColumn.javaType} id)
     {
-        return success(${className}Service.select${ClassName}By${pkColumn.capJavaField}(${pkColumn.javaField}));
+        ${ClassName} entity = ${className}Service.getById(id);
+        return success(toVo(entity));
     }
 
     /**
-     * 新增${functionName}
+     * 新增${functionName}（返回 VO）
      */
     @PreAuthorize("@ss.hasPermi('${permissionPrefix}:add')")
     @Log(title = "${functionName}", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody ${ClassName} ${className})
+    public AjaxResult add(@RequestBody ${ClassName}Vo ${className}Vo)
     {
-        return toAjax(${className}Service.insert${ClassName}(${className}));
+        ${ClassName} entity = toEntity(${className}Vo);
+        boolean ok = ${className}Service.save(entity);
+        return ok ? success(toVo(entity)) : AjaxResult.error("新增失败");
     }
 
     /**
-     * 修改${functionName}
+     * 修改${functionName}（返回 VO）
      */
     @PreAuthorize("@ss.hasPermi('${permissionPrefix}:edit')")
     @Log(title = "${functionName}", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@RequestBody ${ClassName} ${className})
+    public AjaxResult edit(@RequestBody ${ClassName}Vo ${className}Vo)
     {
-        return toAjax(${className}Service.update${ClassName}(${className}));
+        ${ClassName} entity = toEntity(${className}Vo);
+        boolean ok = ${className}Service.updateById(entity);
+        return ok ? success(toVo(entity)) : AjaxResult.error("修改失败");
     }
 
     /**
@@ -107,9 +187,10 @@ public class ${ClassName}Controller extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('${permissionPrefix}:remove')")
     @Log(title = "${functionName}", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{${pkColumn.javaField}s}")
-    public AjaxResult remove(@PathVariable ${pkColumn.javaType}[] ${pkColumn.javaField}s)
+    @DeleteMapping("/{ids}")
+    public AjaxResult remove(@PathVariable ${pkColumn.javaType}[] ids)
     {
-        return toAjax(${className}Service.delete${ClassName}By${pkColumn.capJavaField}s(${pkColumn.javaField}s));
+        boolean ok = ${className}Service.removeByIds(Arrays.asList(ids));
+        return ok ? success() : AjaxResult.error("删除失败");
     }
 }
