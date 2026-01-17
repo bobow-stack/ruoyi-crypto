@@ -97,6 +97,15 @@ token:
   # 令牌有效期（默认30分钟）
   expireTime: 30
 
+app:
+  token:
+    # APP 令牌标识
+    header: App-Authorization
+    # APP 令牌密钥（请按需修改）
+    secret: app-secret
+    # 令牌有效期（分钟）
+    expireTime: 30
+
 # MyBatis配置
 mybatis:
   # 搜索指定包别名
@@ -116,8 +125,8 @@ pagehelper:
 swagger:
   # 是否开启swagger
   enabled: true
-  # 请求前缀
-  pathMapping: /dev-api
+  # 请求前缀（本地直连留空）
+  pathMapping:
 
 # 防盗链配置
 referer:
