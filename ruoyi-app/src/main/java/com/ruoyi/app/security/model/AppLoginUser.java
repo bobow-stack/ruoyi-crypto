@@ -1,9 +1,11 @@
 package com.ruoyi.app.security.model;
 
 import com.alibaba.fastjson2.annotation.JSONField;
-import com.ruoyi.system.domain.User;
+
 import java.io.Serializable;
 import java.util.Collection;
+
+import com.ruoyi.app.domain.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -39,7 +41,7 @@ public class AppLoginUser implements UserDetails, Serializable
     public AppLoginUser(User user)
     {
         this.user = user;
-        this.userId = user != null ? user.getUserId() : null;
+        this.userId = user != null ? user.getId() : null;
     }
 
     public Long getUserId()
@@ -130,7 +132,7 @@ public class AppLoginUser implements UserDetails, Serializable
     public void setUser(User user)
     {
         this.user = user;
-        this.userId = user != null ? user.getUserId() : null;
+        this.userId = user != null ? user.getId() : null;
     }
 
     @JSONField(serialize = false)
@@ -144,13 +146,25 @@ public class AppLoginUser implements UserDetails, Serializable
     @Override
     public String getPassword()
     {
-        return user.getPassword();
+        return null;
     }
 
     @Override
     public String getUsername()
     {
-        return user.getUsername();
+        if (user == null)
+        {
+            return null;
+        }
+        if (user.getUsername() != null)
+        {
+            return user.getUsername();
+        }
+        if (user.getEmail() != null)
+        {
+            return user.getEmail();
+        }
+        return user.getPhone();
     }
 
     @JSONField(serialize = false)

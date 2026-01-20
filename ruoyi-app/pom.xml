@@ -12,8 +12,7 @@
     <artifactId>ruoyi-app</artifactId>
 
     <description>
-        app端接口启动模块
-    </description>
+        app端接口启动模�?    </description>
 
     <dependencies>
 
@@ -42,6 +41,15 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
         </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/io.github.binance/binance-connector-java -->
+        <dependency>
+            <groupId>io.github.binance</groupId>
+            <artifactId>binance-connector-java</artifactId>
+            <version>3.2.0</version>
+            <scope>compile</scope>
+        </dependency>
+
 
         <!-- 核心模块 -->
         <dependency>
@@ -88,3 +96,7 @@
     </build>
 
 </project>
+
+
+
+

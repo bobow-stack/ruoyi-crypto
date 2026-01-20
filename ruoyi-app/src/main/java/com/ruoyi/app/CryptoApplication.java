@@ -8,11 +8,11 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  * App端启动入口
  */
 @SpringBootApplication(scanBasePackages = "com.ruoyi", exclude = { DataSourceAutoConfiguration.class })
-public class RuoYiAppApplication
+public class CryptoApplication
 {
     public static void main(String[] args)
     {
-        SpringApplication.run(RuoYiAppApplication.class, args);
+        SpringApplication.run(CryptoApplication.class, args);
         System.out.println("RuoYi-App started successfully.");
     }
 }
