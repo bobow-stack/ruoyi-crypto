@@ -79,11 +79,11 @@ swagger:
 
 binance:
   market:
-    enabled: true
+    enabled: false
     wsBaseUrl: wss://fstream.binance.com/stream?streams=
     enableBookTicker: false
     enableMarkPrice: false
-    enableKline: true
+    enableKline: false
     klineIntervals: [1m, 5m, 15m, 1h]
     reconnectBaseMillis: 1000
     reconnectMaxMillis: 30000

@@ -16,7 +16,7 @@ public class BinanceMarketProperties
     /**
      * Enable market data connection.
      */
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     /**
      * WebSocket base endpoint (combined stream).
@@ -36,7 +36,7 @@ public class BinanceMarketProperties
     /**
      * Enable kline stream.
      */
-    private boolean enableKline = true;
+    private boolean enableKline = false;
 
     /**
      * Kline intervals (binance format).
