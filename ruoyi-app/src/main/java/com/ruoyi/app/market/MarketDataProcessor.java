@@ -87,9 +87,38 @@ public class MarketDataProcessor
         return snapshotMap;
     }
 
+    public BigDecimal getMarkPrice(Long contractId)
+    {
+        if (contractId == null)
+        {
+            return null;
+        }
+        MarketSnapshot snapshot = snapshotMap.get(contractId);
+        if (snapshot == null)
+        {
+            return null;
+        }
+        BigDecimal price = snapshot.getMarkPrice();
+        if (price == null)
+        {
+            price = snapshot.getLastPrice();
+        }
+        return price;
+    }
+
     public long getLastMessageAt()
     {
         return lastMessageAt.get();
+    }
+
+    public Long getLastTickId(Long contractId)
+    {
+        if (contractId == null)
+        {
+            return null;
+        }
+        MarketSnapshot snapshot = snapshotMap.get(contractId);
+        return snapshot == null ? null : snapshot.getLastTickId();
     }
 
     private void handleEvent(JSONObject data)
@@ -260,6 +289,7 @@ public class MarketDataProcessor
         tick.setTs(new Date(eventTs));
         tick.setRecvTime(new Date(now));
         writer.enqueuePriceTick(tick);
+        snapshot.setLastTickId(tick.getId());
     }
 
     private void maybePersistFunding(MarketSnapshot snapshot, long eventTs)

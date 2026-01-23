@@ -35,6 +35,8 @@ public class MarketSnapshot
 
     private BigDecimal lastTickPrice;
 
+    private Long lastTickId;
+
     public Long getContractId()
     {
         return contractId;
@@ -173,5 +175,15 @@ public class MarketSnapshot
     public void setLastTickPrice(BigDecimal lastTickPrice)
     {
         this.lastTickPrice = lastTickPrice;
+    }
+
+    public Long getLastTickId()
+    {
+        return lastTickId;
+    }
+
+    public void setLastTickId(Long lastTickId)
+    {
+        this.lastTickId = lastTickId;
     }
 }

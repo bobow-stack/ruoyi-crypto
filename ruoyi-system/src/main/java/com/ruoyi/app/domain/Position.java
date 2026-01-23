@@ -85,6 +85,31 @@ public class Position
         @Excel(name = "最新标记价缓存(展示/快速计算)")
     private BigDecimal markPrice;
 
+            /** 名义价值快照=qty*mark_price*contract_size(缓存) */
+        @TableField("notional")
+        @Excel(name = "名义价值快照=qty*mark_price*contract_size(缓存)")
+    private BigDecimal notional;
+
+            /** 初始保证金占用(缓存，逐仓=isolated_margin；全仓=计算值) */
+        @TableField("im")
+        @Excel(name = "初始保证金占用(缓存，逐仓=isolated_margin；全仓=计算值)")
+    private BigDecimal im;
+
+            /** 维持保证金(缓存，来自风险档位mmr*notional) */
+        @TableField("mm")
+        @Excel(name = "维持保证金(缓存，来自风险档位mmr*notional)")
+    private BigDecimal mm;
+
+            /** 已实现盈亏累计(用于统计，可选) */
+        @TableField("realized_pnl")
+        @Excel(name = "已实现盈亏累计(用于统计，可选)")
+    private BigDecimal realizedPnl;
+
+            /** 最近一次刷新所用tick_id(u_price_tick.id) */
+        @TableField("last_update_tick_id")
+        @Excel(name = "最近一次刷新所用tick_id(u_price_tick.id)")
+    private Long lastUpdateTickId;
+
             /** 风险档位(对应合约档位tier) */
         @TableField("risk_tier")
         @Excel(name = "风险档位(对应合约档位tier)")
