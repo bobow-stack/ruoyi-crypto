@@ -7,7 +7,9 @@ import {
   Field,
   Form,
   Icon,
-  NavBar
+  NavBar,
+  Tabbar,
+  TabbarItem
 } from 'vant';
 import App from './App.vue';
 import router from './router';
@@ -24,4 +26,6 @@ app.use(Field);
 app.use(Form);
 app.use(Icon);
 app.use(NavBar);
+app.use(Tabbar);
+app.use(TabbarItem);
 app.mount('#app');
